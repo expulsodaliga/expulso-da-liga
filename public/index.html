@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Expulso da Liga</title>
+<meta name="description" content="Party game de super-heróis, grátis no navegador. Jogue a reação menos pior, debata, blefe e não seja expulso da Liga.">
+<meta name="theme-color" content="#10203C">
+<link rel="icon" href="arte/h03_rindo.webp">
+<link rel="preload" href="fonts/lilita.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/fredoka.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="app.css?v=mwc4klbz">
+<script>
+  // Endereço do servidor de salas. Deixe vazio quando o jogo é servido pelo próprio servidor.
+  // Exemplo, se o jogo estiver no itch.io: window.EDL_SERVER = "wss://expulso-da-liga.onrender.com";
+  window.EDL_SERVER = "";
+</script>
+</head>
+<body data-bg="menu">
+<div id="bg"><i></i><i></i></div>
+<div id="stage">
+  <div id="screen"></div>
+  <div id="toasts"></div>
+  <div id="layer"></div>
+</div>
+<div id="vig"></div>
+<noscript>Este jogo precisa de JavaScript ligado.</noscript>
+<script src="app.js?v=mwc4klbz" defer></script>
+</body>
+</html>

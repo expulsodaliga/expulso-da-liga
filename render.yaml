@@ -1,0 +1,9 @@
+# Publicação no Render (render.com), plano gratuito.
+services:
+  - type: web
+    name: expulso-da-liga
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
