@@ -112,9 +112,50 @@ function closeRoom(room, why) {
   }
 }
 
+// ------------------------------------------------------------------ TURN (voz)
+// Repasse de voz para quem está atrás de rede que bloqueia conexão direta (4G, empresa).
+// Opcional. Configure no Render uma destas opções:
+//   CF_TURN_KEY_ID + CF_TURN_TOKEN  → Cloudflare (gera credenciais temporárias)
+//   TURN_URLS + TURN_USERNAME + TURN_CREDENTIAL → qualquer servidor TURN (URLs separadas por vírgula)
+let turnCache = null;
+let turnAt = 0;
+
+async function turnServers() {
+  if (process.env.CF_TURN_KEY_ID && process.env.CF_TURN_TOKEN) {
+    if (turnCache && Date.now() - turnAt < 6 * 3600 * 1000) return turnCache;
+    try {
+      const r = await fetch(`https://rtc.live.cloudflare.com/v1/turn/keys/${process.env.CF_TURN_KEY_ID}/credentials/generate-ice-servers`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${process.env.CF_TURN_TOKEN}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ ttl: 86400 }),
+      });
+      const j = await r.json();
+      const list = Array.isArray(j.iceServers) ? j.iceServers : j.iceServers ? [j.iceServers] : [];
+      if (list.length) {
+        turnCache = list;
+        turnAt = Date.now();
+      }
+      return list;
+    } catch (e) {
+      console.error("TURN Cloudflare falhou:", e.message);
+      return turnCache || [];
+    }
+  }
+  if (process.env.TURN_URLS) {
+    return [{ urls: process.env.TURN_URLS.split(",").map((u) => u.trim()).filter(Boolean), username: process.env.TURN_USERNAME || "", credential: process.env.TURN_CREDENTIAL || "" }];
+  }
+  return [];
+}
+
 const server = http.createServer((req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   const url = req.url.split("?")[0];
+  if (url === "/turn") {
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Content-Type", "application/json");
+    turnServers().then((list) => res.end(JSON.stringify({ iceServers: list })));
+    return;
+  }
   if (url === "/rooms") {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("Content-Type", "application/json");
