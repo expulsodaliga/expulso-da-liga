@@ -94,7 +94,8 @@ function publicRooms() {
       code: r.code,
       name: String(m.name || "Sala da Liga").slice(0, 28),
       host: String(m.host || "").slice(0, 18),
-      n: r.peers.size + 1,
+      // Quem ainda está escolhendo o herói não conta: vale o número que o host informa.
+      n: Math.min(Number(m.n) || r.peers.size + 1, MAX_PLAYERS),
       max: Math.min(Number(m.max) || MAX_PLAYERS, MAX_PLAYERS),
       phase: String(m.phase || "lobby"),
     });
@@ -241,7 +242,8 @@ function handleControl(ws, msg) {
         sendJson(ws, { t: "error", msg: "Sala não encontrada. Confira o código: talvez ela já tenha fechado." });
         return ws.close(4001, "no room");
       }
-      if (room.peers.size + 1 >= MAX_PLAYERS) {
+      // Folga para quem está na tela de escolher herói; quem decide se cabe é o host.
+      if (room.peers.size + 1 >= MAX_PLAYERS + 4) {
         sendJson(ws, { t: "error", msg: "A sala está cheia." });
         return ws.close(4002, "full");
       }
@@ -256,7 +258,7 @@ function handleControl(ws, msg) {
     case "meta": {
       if (ws.peerId !== 1 || !ws.room) return;
       const m = {};
-      for (const k of ["name", "host", "max", "phase", "public"]) if (k in msg) m[k] = msg[k];
+      for (const k of ["name", "host", "n", "max", "phase", "public"]) if (k in msg) m[k] = msg[k];
       ws.room.meta = m;
       break;
     }
